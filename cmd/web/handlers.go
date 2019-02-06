@@ -3,13 +3,19 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
 
+type application struct {
+	Errlog  *log.Logger
+	Infolog *log.Logger
+}
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		app.notFound(w)
 		return
 	}
 	// Initialize a slice containing the paths to the two files. Note that the // home.page.tmpl file must be the *first* file in the slice.
@@ -20,13 +26,13 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		app.Errlog.Println(err.Error())
-		http.Error(w, "Parsing error", 500)
+		app.serverError(w, err)
 		return
 	}
 	err = ts.Execute(w, nil)
 	if err != nil {
 		app.Errlog.Println(err.Error())
-		http.Error(w, "Parsing error", 500)
+		app.serverError(w, err)
 		return
 	}
 	fmt.Fprintf(w, "welcome home")
