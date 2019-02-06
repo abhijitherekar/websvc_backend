@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -20,19 +19,20 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
+		app.Errlog.Println(err.Error())
 		http.Error(w, "Parsing error", 500)
 		return
 	}
 	err = ts.Execute(w, nil)
 	if err != nil {
-		log.Println(err.Error())
+		app.Errlog.Println(err.Error())
 		http.Error(w, "Parsing error", 500)
 		return
 	}
 	fmt.Fprintf(w, "welcome home")
 }
-func create(w http.ResponseWriter, r *http.Request) {
+
+func (app *application) create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
 		http.Error(w, "method not supported", 405)
@@ -40,7 +40,8 @@ func create(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "create home")
 }
-func show(w http.ResponseWriter, r *http.Request) {
+
+func (app *application) show(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.Header().Set("Allow", "GET")
 		http.Error(w, "method not supported", 405)
@@ -48,6 +49,7 @@ func show(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
+		app.Errlog.Println(err.Error())
 		http.Error(w, "wrong query", 405)
 		return
 	}
