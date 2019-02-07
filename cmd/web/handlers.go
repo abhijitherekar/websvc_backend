@@ -6,11 +6,14 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/abhijitherekar/websvc_backend/pkg/models/mysql"
 )
 
 type application struct {
-	Errlog  *log.Logger
-	Infolog *log.Logger
+	Errlog   *log.Logger
+	Infolog  *log.Logger
+	Snippets *mysql.SnippetModel
 }
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -44,21 +47,28 @@ func (app *application) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not supported", 405)
 		return
 	}
-	fmt.Fprintf(w, "create home")
+	title := "ABHI"
+	content := "db example from golang"
+	exp := "7"
+	id, err := app.Snippets.Insert(title, content, exp)
+	if err != nil {
+		app.Errlog.Println("Error inserting in DB", err)
+	}
+	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
 }
 
 func (app *application) show(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		w.Header().Set("Allow", "GET")
-		http.Error(w, "method not supported", 405)
-		return
-	}
+
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		app.Errlog.Println(err.Error())
 		http.Error(w, "wrong query", 405)
 		return
 	}
-
-	fmt.Fprintf(w, "show home %d", id)
+	sm, err := app.Snippets.Get(id)
+	if err != nil {
+		app.Errlog.Println(err.Error())
+		app.notFound(w)
+	}
+	fmt.Fprintf(w, "%v", sm)
 }
