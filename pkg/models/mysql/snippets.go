@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/abhijitherekar/websvc_backend/pkg/models"
 )
@@ -12,6 +13,7 @@ type SnippetModel struct {
 
 func (s *SnippetModel) Insert(title, content, expTime string) (int, error) {
 
+	fmt.Println("\n IN insert")
 	sqlStmt := `INSERT INTO snippets (title, content, created, expires)
 	VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
 
